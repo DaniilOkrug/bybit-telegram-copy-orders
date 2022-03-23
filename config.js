@@ -1,13 +1,13 @@
 module.exports = {
   bybit: {
-    apiKey: "2ththR00984lK1vAru",
-    apiSecret: "lJ1vJEjtro26CWwWzoUuJSlXcatFrRAWV1DI"
+    apiKey: "",
+    apiSecret: ""
   },
   telegram: {
     bots: [
       {
-        token: "1816816914:AAF1oNW64vxq3tRv_AOaDWZtJRlVok1dssA",
-        chat_id: "-1001526673230",
+        token: "",
+        chat_id: "",
         messageOrder: "{{order_status}} {{symbol}}({{side}} сделка)\
             \nМоя цена входа {{price_open}}\
             \nПлечо х5-х10\
