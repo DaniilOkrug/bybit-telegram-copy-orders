@@ -1,0 +1,20 @@
+{
+  "name": "bybit-to-telegram",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.26.1",
+    "mocha": "^9.2.2",
+    "node-telegram-bot-api": "^0.56.0",
+    "nodemon": "^2.0.15",
+    "telegram": "^2.5.22",
+    "ws": "^8.5.0"
+  }
+}
