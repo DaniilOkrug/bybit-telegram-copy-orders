@@ -2,7 +2,7 @@ const Jimp = require('jimp');
 
 class ImageGenearator {
     async new(signal, data) {
-        const image = await Jimp.read("./middleware/source.png");
+        const image = await Jimp.read(signal === "Long" ? "./middleware/long.png" : "./middleware/short.png");
 
         const fontWhite = await Jimp.loadFont("./middleware/fonts/Roboto-White.fnt");
         const fontOrange = await Jimp.loadFont("./middleware/fonts/Roboto-Orange.fnt");
@@ -10,12 +10,6 @@ class ImageGenearator {
         const fontGreenBig = await Jimp.loadFont("./middleware/fonts/Roboto-Green-Big.fnt");
         const fontRedSmall = await Jimp.loadFont("./middleware/fonts/RobotoRed.fnt");
         const fontRedBig = await Jimp.loadFont("./middleware/fonts/Roboto-Red-Big.fnt");
-
-        if (signal == 'Long') {
-            image.print(fontGreenSmall, 57, 195, signal);
-        } else {
-            image.print(fontRedSmall, 57, 195, signal);
-        }
 
         if (data.pnl >= 0) {
             image.print(fontGreenBig, 57, 340, data.pnl + '%');
