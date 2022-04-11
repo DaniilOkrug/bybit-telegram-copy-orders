@@ -262,7 +262,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                         if (shortPosition.size == 0 && prevShortPosition?.size > 0) {
                             const order = orders[orderData.symbol].short;
                             // let roi = ((Math.abs(order.end_pnl - order.init_pnl)) / (order.size * prevShortPosition.entry_price)) * 100;
-                            roi = ((orderData.last_exec_price - prevShortPosition.entry_price) / (orderData.last_exec_price / prevShortPosition.leverage)) * 100;
+                            roi = ((prevShortPosition.entry_price - orderData.last_exec_price) / (orderData.last_exec_price / prevShortPosition.leverage)) * 100;
 
                             // if (order.end_pnl < order.init_pnl) {
                             //     roi *= -1;
@@ -337,7 +337,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     //My previuous roi
                                     // roi = ((Math.abs(order.end_pnl - order.init_pnl)) / (order.size * shortPosition.entry_price)) * 100;
                                     //New roi
-                                    roi = ((orderData.last_exec_price - shortPosition.entry_price) / (orderData.last_exec_price / shortPosition.leverage)) * 100;
+                                    roi = ((shortPosition.entry_price - orderData.last_exec_price) / (orderData.last_exec_price / shortPosition.leverage)) * 100;
                                     // if (order.end_pnl < order.init_pnl) {
                                     //     roi *= -1;
                                     // }
@@ -410,7 +410,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         }, "PARTIALLY");
                                     }
 
-                                    await ImageGenearator.new('Short', {
+                                    await ImageGenearator.new('Long', {
                                         symbol: orderData.symbol,
                                         open: prevLongPosition.entry_price,
                                         close: orderData.last_exec_price,
