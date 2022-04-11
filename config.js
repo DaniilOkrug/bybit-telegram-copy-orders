@@ -1,19 +1,20 @@
 module.exports = {
   bybit: {
-    apiKey: "",
-    apiSecret: ""
+    apiKey: "cRUuYgEe8y5eP2qD4o",
+    apiSecret: "wsfC0ENHQwNq4MUES6aglyXFwWYW8yb1uiKH"
   },
   telegram: {
     bots: [
       {
-        token: "",
-        chat_id: "",
-        messageOrder: "{{order_status}} {{symbol}}({{side}} сделка)\
+        token: "1816816914:AAF1oNW64vxq3tRv_AOaDWZtJRlVok1dssA",
+        chat_id_group: "-1001319144479",
+        // chat_id_channel: "-1001526673230",
+        messageOrder: "{{order_status}} {{symbol}} ({{side}} сделка)\
             \nМоя цена входа {{price_open}}\
             \nПлечо х5-х10\
             {{take_profit_message}}\
             {{stop_loss_message}}",
-        messageAction: "{{action}} {{symbol}}({{side}} сделка)\
+        messageAction: "{{action}} {{symbol}} ({{side}} сделка)\
             \nМоя цена входа {{price_open}}\
             \nПлечо x{{leverage}}\
             {{take_profit_message}}\
@@ -26,6 +27,8 @@ module.exports = {
             \nМоя цена входа {{price_open}}\
             \nМоя цена закрытия {{price_close}}\
             \nPnL {{roi}}%",
+        messageCancel: "Отменяем ордер на {{cancel_type}} {{symbol}} ({{side}} сделка)\
+            \nОрдер ставили на уровень {{price_open}}",
         messageStopLossChange: "{{order_status}} по {{symbol}}\
             \nНовый стоп ставим на уровень {{stop_loss}}",
         messageTakeProfitChange: "{{order_status}} по {{symbol}}\
@@ -34,33 +37,47 @@ module.exports = {
         messageTakeProfit: "\nТейк {{take_profit}}",
         messageBreakEvenStopLoss: "{{order_status}} по {{symbol}}\
             \nМоя точка входа {{price_open}}\
-            \nМой стоп: {{stop_loss}}"
-        // messagePlaceholders: {
-        //   action: {
-        //     buy: "Покупаем",
-        //     sell: "Продаем"
-        //   },
-        //   side: {
-        //     long: "лонг",
-        //     short: "шорт"
-        //   },
-        //   order: {
-        //     type: {
-        //       "limit": "Лимитный",
-        //       "market": "Маркет"
-        //     },
-        //     status: {
-        //       new: "new",
-        //       partiallyClosed: "partiallyClosed",
-        //       close: "Закрытие позиции",
-        //       cancelled: "cancelled",
-        //       change_order_position: "change_order_position",
-        //       filled: "filled",
-        //       new_tp: "new_tp",
-        //       new_sl: "new_sl"
-        //     }
-        //   }
-        // }
+            \nМой стоп: {{stop_loss}}",
+        messageDeleteStopLoss: "Убираем стоплосс по {{symbol}}",
+        messageDeleteTakeProfit: "Убираем текпрофит по {{symbol}}",
+        messageCloseByTakeProfit: "🏁 Сработал тейк-профит. Закрыл {{close_percent}}% позиции по {{symbol}}\
+            \nМоя цена входа {{price_open}}\
+            \nМоя цена закрытия {{price_close}}\
+            \nPnL {{roi}}%",
+        messageCloseByStopLoss: "🏁 Сработал стоп-лосс. Закрыл {{close_percent}}% позиции по {{symbol}}\
+            \nМоя цена входа {{price_open}}\
+            \nМоя цена закрытия {{price_close}}\
+            \nPnL {{roi}}%",
+        messagePlaceholders: {
+          action: {
+            buy: "🟢 Покупаем",
+            sell: "🔴 Продаем"
+          },
+          side: {
+            long: "лонг",
+            short: "шорт"
+          },
+          order: {
+            type: {
+              limit: "Лимитный",
+              market: "Маркет"
+            },
+            cancel_type : {
+              long: "покупку",
+              short: "продажу"
+            },
+            status: {
+              newBuy: "Выставляем ордер на покупку",
+              newSell: "Выставляем ордер на продажу",
+              partiallyClosed: "Частиное закрытие позции",
+              change_order_position: "Изменение ордера",
+              filled: "Исполнение ордера",
+              new_tp: "Изменяем тейк-профит",
+              new_sl: "Изменяем стоп-лосс",
+              breakeven_sl: "Ставим стоп-лосс в БУ",
+            }
+          }
+        }
       }
     ]
   }

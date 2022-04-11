@@ -12,7 +12,8 @@ const placeholdes = {
     roi: "{{roi}}",
     take_profit_message: "{{take_profit_message}}",
     stop_loss_message: "{{stop_loss_message}}",
-    close_percent: "{{close_percent}}"
+    close_percent: "{{close_percent}}",
+    cancel_type: "{{cancel_type}}"
 };
 
 const defaultMesasges = {
@@ -28,6 +29,10 @@ const defaultMesasges = {
         type: {
             limit: "Лимитный",
             market: "Маркет"
+        },
+        cancel_type: {
+            long: "покупку",
+            short: "продажу"
         },
         status: {
             newBuy: "Выставляем ордер на покупку",
@@ -54,6 +59,11 @@ class Parser {
     messageStopLossChange;
     messageTakeProfitChange;
     messageBreakEvenStopLoss;
+    messageCancel;
+    messageDeleteStopLoss;
+    messageDeleteTakeProfit;
+    messageCloseByTakeProfit
+    messageCloseByStopLoss
 
     constructor(messages, messagePlaceholders = false) {
         this.messageOrder = messages.messageOrder;
@@ -65,6 +75,11 @@ class Parser {
         this.messageStopLoss = messages.messageStopLoss;
         this.messageTakeProfit = messages.messageTakeProfit;
         this.messageBreakEvenStopLoss = messages.messageBreakEvenStopLoss;
+        this.messageCancel = messages.messageCancel;
+        this.messageDeleteStopLoss = messages.messageDeleteStopLoss;
+        this.messageDeleteTakeProfit = messages.messageDeleteTakeProfit;
+        this.messageCloseByTakeProfit = messages.messageCloseByTakeProfit;
+        this.messageCloseByStopLoss = messages.messageCloseByStopLoss;
 
         if (messagePlaceholders) {
             this.messagePlaceholders = messagePlaceholders;
@@ -83,13 +98,25 @@ class Parser {
     parseSignal(orderMessage, type) {
         let message;
 
-        if (orderMessage.order_status == 'New' || orderMessage.order_status == 'Cancelled') message = this.messageOrder;
+        if (orderMessage.order_status == 'New') message = this.messageOrder;
+        if (orderMessage.order_status == 'Cancelled') message = this.messageCancel;
         if (orderMessage.order_status == 'Filled') message = this.messageAction;
         if (type == "CLOSE") message = this.messageClose;
         if (type == "PARTIALLY") message = this.messageClosePartially;
         if (type == "NEW_POSITION_TP") message = this.messageTakeProfitChange;
         if (type == "NEW_POSITION_SL") message = this.messageStopLossChange;
         if (type == "BREAKEVEN_SL") message = this.messageBreakEvenStopLoss;
+        if (type == "CloseByTakeProfit") message = this.messageCloseByTakeProfit;
+        if (type == "CloseByStopLoss") message = this.messageCloseByStopLoss;
+
+        //Canceling TP/SL
+        if (type == "NEW_POSITION_TP" && orderMessage.take_profit == 0) {
+            message = this.messageDeleteTakeProfit;
+        }
+
+        if (type == "NEW_POSITION_SL" && orderMessage.stop_loss == 0) {
+            message = this.messageDeleteStopLoss;
+        }
 
         //Order status
         if (message.includes(placeholdes.order_status)) {
@@ -114,9 +141,9 @@ class Parser {
                             message = message.replace(placeholdes.order_status, this.messagePlaceholders.order.status.newSell);
                         }
                     }
-                    if (orderMessage.order_status === "Cancelled") {
-                        message = message.replace(placeholdes.order_status, this.messagePlaceholders.order.status.cancelled);
-                    }
+                    // if (orderMessage.order_status === "Cancelled") {
+                    // 
+                    // }
                     if (orderMessage.order_status === "Filled") {
                         message = message.replace(placeholdes.order_status, this.messagePlaceholders.order.status.filled);
                     }
@@ -130,6 +157,15 @@ class Parser {
         }
         if (type == "PARTIALLY"){
             message = message.replace(placeholdes.order_status, this.messagePlaceholders.order.status.partiallyClosed);
+        }
+
+        //Cancel type
+        if (message.includes(placeholdes.cancel_type)) {
+            if (orderMessage.side == "Buy") {
+                message = message.replace(placeholdes.cancel_type, this.messagePlaceholders.order.cancel_type.long);
+            } else {
+                message = message.replace(placeholdes.cancel_type, this.messagePlaceholders.order.cancel_type.short);
+            }
         }
 
         //Roi
@@ -221,9 +257,18 @@ class Parser {
         
         //Close percent
         if (message.includes(placeholdes.close_percent)) {
-            message = message.replace(placeholdes.close_percent, orderMessage.closePercent);
+            message = message.replace(placeholdes.close_percent, this.formattingPercentClose(orderMessage.closePercent));
         }
+
         return message;
+    }
+
+    formattingPercentClose(percent) {
+        if (Math.abs(percent - 10) < 5) return 10
+        if (Math.abs(percent - 25) < 15) return 25
+        if (Math.abs(percent - 50) < 8) return 50
+        if (Math.abs(percent - 75) < 8) return 75
+        return percent
     }
 }
 

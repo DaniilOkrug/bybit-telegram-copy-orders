@@ -1,3 +1,5 @@
+const { default: axios } = require('axios');
+
 let api = function Bybit(options = {}) {
     const Bybit = this;
     const WebSocket = require('ws');
@@ -6,6 +8,8 @@ let api = function Bybit(options = {}) {
     const publicSpotStream = "wss://stream.bybit.com/spot/quote/ws/v1";
     const privateSpotStream = "wss://stream.bybit.com/spot/ws";
     const privateFuturesStream = "wss://stream.bytick.com/realtime_private";
+
+    const base = "https://api.bybit.com";
 
     Bybit.subscriptions = {};
     Bybit.options = {
@@ -20,6 +24,20 @@ let api = function Bybit(options = {}) {
 
     function setOptions() {
         Bybit.options = options;
+    }
+    
+    const getTime = async () => {
+        return +(await axios.get(base + "/v2/public/time")).data.time_now;
+    }
+
+    const getSignature = (parameters, secret) => {
+        let orderedParams = "";
+        Object.keys(parameters).sort().forEach(function (key) {
+            orderedParams += key + "=" + parameters[key] + "&";
+        });
+        orderedParams = orderedParams.substring(0, orderedParams.length - 1);
+
+        return crypto.createHmac('sha256', secret).update(orderedParams).digest('hex');
     }
 
     const userDataHandler = data => {
@@ -47,10 +65,10 @@ let api = function Bybit(options = {}) {
         if (Bybit.subscriptions && Object.keys(Bybit.subscriptions).length === 0) {
             clearInterval(Bybit.socketHeartbeatInterval);
         }
-        Bybit.options.log('WebSocket closed: ' + this.endpoint +
-            (code ? ' (' + code + ')' : '') +
-            (reason ? ' ' + reason : ''));
-        if (Bybit.options.reconnect && this.reconnect && reconnect) {
+        Bybit.options.log('WebSocket closed: ' + this.endpoint);
+            // (code ? ' (' + code + ')' : '') +
+            // (reason ? ' ' + reason : ''));
+        if (Bybit.options.reconnect && reconnect) {
             if (this.endpoint && parseInt(this.endpoint.length, 10) === 60) Bybit.options.log('Account data WebSocket reconnecting...');
             else Bybit.options.log('WebSocket reconnecting: ' + this.endpoint + '...');
             try {
@@ -138,6 +156,20 @@ let api = function Bybit(options = {}) {
     }
 
     return {
+        positions: function positions(){
+            return new Promise(async (resolve, reject) => {
+                const params = {
+                    api_key: Bybit.options.APIKEY,
+                    timestamp: Date.now().toString()
+                };
+                params.sign = getSignature(params, Bybit.options.SECRETKEY);
+
+                const res = await axios.get(base + "/private/linear/position/list", { params });
+
+                resolve(res.data.result);
+            });
+        },
+
         websockets: {
             trade: function trade(symbol, callback) {
                 let reconnect = () => {
@@ -164,7 +196,7 @@ let api = function Bybit(options = {}) {
 
             futurePosition: function futurePosition(callback) {
                 let reconnect = () => {
-                    if (Bybit.options.reconnect) usefuturePositionrData(callback);
+                    if (Bybit.options.reconnect) futurePosition(callback);
                 };
 
                 const subscription = futureSubscribe(privateFuturesStream, "position", callback, reconnect);

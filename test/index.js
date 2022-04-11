@@ -1,6 +1,7 @@
 const assert = require('assert');
 const { parseSignal } = require('../middleware/parser');
 const config = require('../config');
+const Bybit = require('../bybit/node-bybit-api');
 
 describe('Parse message', function () {
     describe('parseSignal', function () {
@@ -43,4 +44,22 @@ describe('Parse message', function () {
             setTimeout(() => {}, 1000)
         });
     });
+});
+
+describe('get Positions', function () {
+    this.timeout(10000);
+
+    it("all", async function (done) {
+        const bybitBot = new Bybit({
+            APIKEY: config.bybit.apiKey,
+            SECRETKEY: config.bybit.apiSecret,
+            reconnect: true,
+            verbose: true,
+            log: function (...args) {
+                console.log(Array.prototype.slice.call(args));
+            }
+        });
+
+        bybitBot.positions();
+    })
 });
