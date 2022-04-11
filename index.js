@@ -726,22 +726,38 @@ bybitBot.websockets.futurePosition(position => {
 
         //At partially closing
         if (prev.longPosition.size > cur.longPosition.size && cur.longPosition.size > 0) {
-            orders[currentPos.symbol].long?.end_pnl = cur.longPosition.realised_pnl;
-            orders[currentPos.symbol].long?.new_size = cur.longPosition.size;
+            if (typeof orders[currentPos.symbol] !== 'undefined') {
+                if (typeof orders[currentPos.symbol].long !=='undefined') {
+                    orders[currentPos.symbol].long.end_pnl = cur.longPosition.realised_pnl;
+                    orders[currentPos.symbol].long.new_size = cur.longPosition.size;
+                }
+            }
         }
 
         if (prev.shortPosition.size > cur.shortPosition.size && prev.shortPosition.size > 0) {
-            orders[currentPos.symbol].short?.end_pnl = cur.shortPosition.realised_pnl;
-            orders[currentPos.symbol].short?.new_size = cur.shortPosition.size;
+            if (typeof orders[currentPos.symbol] !== 'undefined') {
+                if (typeof orders[currentPos.symbol].short !== 'undefined') {
+                    orders[currentPos.symbol].short.end_pnl = cur.shortPosition.realised_pnl;
+                    orders[currentPos.symbol].short.new_size = cur.shortPosition.size;
+                }
+            }
         }
 
         //At the end
         if (prev.longPosition.size > 0 && cur.longPosition.size == 0) {
-            orders[currentPos.symbol].long?.end_pnl = cur.longPosition.realised_pnl;
+            if (typeof orders[currentPos.symbol] !== 'undefined') {
+                if (typeof orders[currentPos.symbol].long !== 'undefined') {
+                    orders[currentPos.symbol].long.end_pnl = cur.longPosition.realised_pnl;
+                }
+            }
         }
 
         if (prev.shortPosition.size > 0 && cur.shortPosition.size == 0) {
-            orders[currentPos.symbol].short?.end_pnl = cur.shortPosition.realised_pnl;
+            if (typeof orders[currentPos.symbol] !== 'undefined') {
+                if (typeof orders[currentPos.symbol].short !== 'undefined') {
+                    orders[currentPos.symbol].short.end_pnl = cur.shortPosition.realised_pnl;
+                }
+            }
         }
 
 
