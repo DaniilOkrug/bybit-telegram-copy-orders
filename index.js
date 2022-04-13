@@ -1,3 +1,4 @@
+require('dotenv').config();
 const config = require("./config");
 const TelegramBot = require('node-telegram-bot-api');
 const Bybit = require('./bybit/node-bybit-api');
@@ -6,8 +7,8 @@ const ImageGenearator = require('./middleware/imageGenerator');
 const { default: axios } = require("axios");
 
 const bybitBot = new Bybit({
-    APIKEY: config.bybit.apiKey,
-    SECRETKEY: config.bybit.apiSecret,
+    APIKEY: process.env.KEY,
+    SECRETKEY: process.env.SECRET,
     reconnect: true,
     verbose: true,
     log: function (...args) {
@@ -51,7 +52,6 @@ config.telegram.bots.forEach(data => {
 });
 
 (async () => {
-    // console.log(await bybitBot.positions());
     (await bybitBot.positions()).forEach(position => {
         if (typeof positions[position.data.symbol] === 'undefined') {
             positions[position.data.symbol] = {
@@ -68,7 +68,6 @@ config.telegram.bots.forEach(data => {
             positions[position.data.symbol].current.shortPosition = position.data;
         }
     });
-    console.log(positions);
 })();
 
 let chatId;

@@ -1,8 +1,4 @@
 module.exports = {
-  bybit: {
-    apiKey: "cRUuYgEe8y5eP2qD4o",
-    apiSecret: "wsfC0ENHQwNq4MUES6aglyXFwWYW8yb1uiKH"
-  },
   telegram: {
     bots: [
       {
@@ -10,7 +6,7 @@ module.exports = {
         chat_id_group: "-1001319144479",
         // chat_id_channel: "-1001526673230",
         messageOrder: "{{order_status}} {{symbol}} ({{side}} сделка)\
-            \nМоя цена входа {{price_open}}\
+            \nЦена входа {{price_open}}\
             \nПлечо х5-х10\
             {{take_profit_message}}\
             {{stop_loss_message}}",
@@ -38,8 +34,8 @@ module.exports = {
         messageBreakEvenStopLoss: "{{order_status}} по {{symbol}}\
             \nМоя точка входа {{price_open}}\
             \nМой стоп: {{stop_loss}}",
-        messageDeleteStopLoss: "Убираем стоплосс по {{symbol}}",
-        messageDeleteTakeProfit: "Убираем текпрофит по {{symbol}}",
+        messageDeleteStopLoss: "Убираем стоп-лосс по {{symbol}}",
+        messageDeleteTakeProfit: "Убираем тейк-профит по {{symbol}}",
         messageCloseByTakeProfit: "🏁 Сработал тейк-профит. Закрыл {{close_percent}}% позиции по {{symbol}}\
             \nМоя цена входа {{price_open}}\
             \nМоя цена закрытия {{price_close}}\
