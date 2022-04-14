@@ -10,6 +10,12 @@ module.exports = {
             \nПлечо х5-х10\
             {{take_profit_message}}\
             {{stop_loss_message}}",
+        messageOrderExecution: "{{action}} {{symbol}} ({{side}} сделка)\
+            \nСработал выставленный лимитный ордер\
+            \nМоя цена входа {{price_open}}\
+            \nПлече x{{leverage}}\
+            {{take_profit_message}}\
+            {{stop_loss_message}}",
         messageAction: "{{action}} {{symbol}} ({{side}} сделка)\
             \nМоя цена входа {{price_open}}\
             \nПлечо x{{leverage}}\

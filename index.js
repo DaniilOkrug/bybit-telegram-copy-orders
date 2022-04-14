@@ -25,6 +25,7 @@ const positions = {};
 config.telegram.bots.forEach(data => {
     const messages = {
         messageOrder: data.messageOrder,
+        messageOrderExecution: data.messageOrderExecution,
         messageAction: data.messageAction,
         messageCancel: data.messageCancel,
         messageClose: data.messageClose,
@@ -176,7 +177,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
             }
 
             if (orderData.order_status == "Filled") {
-                console.log(orders[orderData.symbol]);
+                console.log('Orders', orders[orderData.symbol]);
                 if (typeof positions[orderData.symbol] !== 'undefined') {
                     const { longPosition, shortPosition } = positions[orderData.symbol].current;
                     const prevLongPosition = positions[orderData.symbol].previous.longPosition;
@@ -206,7 +207,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
 
                                 if (orderData.create_type == 'CreateByTakeProfit') {
                                     signalMessage = botData.parser.parseSignal({
-                                        roi: roi.toFixed(3),
+                                        roi: roi.toFixed(2),
                                         price_close: orderData.last_exec_price,
                                         price_open: prevLongPosition.entry_price,
                                         closePercent: Math.round((orderData.qty / order.size) * 100),
@@ -214,7 +215,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     }, "CloseByTakeProfit");
                                 } else if (orderData.create_type == 'CreateByStopLoss') {
                                     signalMessage = botData.parser.parseSignal({
-                                        roi: roi.toFixed(3),
+                                        roi: roi.toFixed(2),
                                         price_close: orderData.last_exec_price,
                                         price_open: prevLongPosition.entry_price,
                                         closePercent: Math.round((orderData.qty / order.size) * 100),
@@ -222,7 +223,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     }, "CloseByStopLoss");
                                 } else {
                                     signalMessage = botData.parser.parseSignal({
-                                        roi: roi.toFixed(3),
+                                        roi: roi.toFixed(2),
                                         price_close: orderData.last_exec_price,
                                         price_open: prevLongPosition.entry_price,
                                         ...orderData
@@ -235,7 +236,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         open: prevLongPosition.entry_price,
                                         close: orderData.last_exec_price,
                                         leverage: prevLongPosition.leverage,
-                                        pnl: roi.toFixed(3)
+                                        pnl: roi.toFixed(2)
                                     });
                                     // botData.bot.sendMessage(botData.chatId_group, signalMessage);
                                     botData.bot.sendPhoto(botData.chatId_group, './output.png', {
@@ -272,7 +273,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
 
                                 if (orderData.create_type == 'CreateByTakeProfit') {
                                     signalMessage = botData.parser.parseSignal({
-                                        roi: roi.toFixed(3),
+                                        roi: roi.toFixed(2),
                                         price_close: orderData.last_exec_price,
                                         price_open: prevShortPosition.entry_price,
                                         closePercent: Math.round((orderData.qty / order.size) * 100),
@@ -280,7 +281,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     }, "CloseByTakeProfit");
                                 } else if (orderData.create_type == 'CreateByStopLoss') {
                                     signalMessage = botData.parser.parseSignal({
-                                        roi: roi.toFixed(3),
+                                        roi: roi.toFixed(2),
                                         price_close: orderData.last_exec_price,
                                         price_open: prevShortPosition.entry_price,
                                         closePercent: Math.round((orderData.qty / order.size) * 100),
@@ -288,7 +289,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     }, "CloseByStopLoss");
                                 } else {
                                     signalMessage = botData.parser.parseSignal({
-                                        roi: roi.toFixed(3),
+                                        roi: roi.toFixed(2),
                                         price_close: orderData.last_exec_price,
                                         price_open: prevShortPosition.entry_price,
                                         ...orderData
@@ -301,7 +302,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         open: prevShortPosition.entry_price,
                                         close: orderData.last_exec_price,
                                         leverage: prevShortPosition.leverage,
-                                        pnl: roi.toFixed(3)
+                                        pnl: roi.toFixed(2)
                                     });
                                     // botData.bot.sendMessage(botData.chatId_group, signalMessage);
                                     botData.bot.sendPhoto(botData.chatId_group, './output.png', {
@@ -343,7 +344,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
 
                                     if (orderData.create_type == 'CreateByTakeProfit') {
                                         signalMessage = botData.parser.parseSignal({
-                                            roi: roi.toFixed(3),
+                                            roi: roi.toFixed(2),
                                             closePercent: Math.round((orderData.qty / order.size) * 100),
                                             price_close: orderData.last_exec_price,
                                             price_open: shortPosition.entry_price,
@@ -351,7 +352,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         }, "CloseByTakeProfit");
                                     } else if (orderData.create_type == 'CreateByStopLoss') {
                                         signalMessage = botData.parser.parseSignal({
-                                            roi: roi.toFixed(3),
+                                            roi: roi.toFixed(2),
                                             closePercent: Math.round((orderData.qty / order.size) * 100),
                                             price_close: orderData.last_exec_price,
                                             price_open: shortPosition.entry_price,
@@ -359,7 +360,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         }, "CloseByStopLoss");
                                     } else {
                                         signalMessage = botData.parser.parseSignal({
-                                            roi: roi.toFixed(3),
+                                            roi: roi.toFixed(2),
                                             closePercent: Math.round((orderData.qty / order.size) * 100),
                                             price_close: orderData.last_exec_price,
                                             price_open: shortPosition.entry_price,
@@ -372,7 +373,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         open: prevShortPosition.entry_price,
                                         close: orderData.last_exec_price,
                                         leverage: prevShortPosition.leverage,
-                                        pnl: roi.toFixed(3)
+                                        pnl: roi.toFixed(2)
                                     });
                                 } else {
                                     order = orders[orderData.symbol].long;
@@ -385,7 +386,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
 
                                     if (orderData.create_type == 'CreateByTakeProfit') {
                                         signalMessage = botData.parser.parseSignal({
-                                            roi: roi.toFixed(3),
+                                            roi: roi.toFixed(2),
                                             closePercent: Math.round((orderData.qty / order.size) * 100),
                                             price_close: orderData.last_exec_price,
                                             price_open: longPosition.entry_price,
@@ -393,7 +394,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         }, "CloseByTakeProfit");
                                     } else if (orderData.create_type == 'CreateByStopLoss') {
                                         signalMessage = botData.parser.parseSignal({
-                                            roi: roi.toFixed(3),
+                                            roi: roi.toFixed(2),
                                             closePercent: Math.round((orderData.qty / order.size) * 100),
                                             price_close: orderData.last_exec_price,
                                             price_open: longPosition.entry_price,
@@ -401,7 +402,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         }, "CloseByStopLoss");
                                     } else {
                                         signalMessage = botData.parser.parseSignal({
-                                            roi: roi.toFixed(3),
+                                            roi: roi.toFixed(2),
                                             closePercent: Math.round((orderData.qty / order.size) * 100),
                                             price_close: orderData.last_exec_price,
                                             price_open: longPosition.entry_price,
@@ -414,7 +415,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         open: prevLongPosition.entry_price,
                                         close: orderData.last_exec_price,
                                         leverage: prevLongPosition.leverage,
-                                        pnl: roi.toFixed(3)
+                                        pnl: roi.toFixed(2)
                                     });
                                 }
 
@@ -454,17 +455,33 @@ bybitBot.websockets.futureOrder(orderMessage => {
                     bots.forEach(async botData => {
                         let signalMessage;
                         if (longPosition.size > prevLongPosition.size) {
-                            signalMessage = botData.parser.parseSignal({
-                                leverage: orders[orderData.symbol].long.leverage,
-                                price_open: orderData.last_exec_price,
-                                ...orderData
-                            }, "");
+                            if (orders[orderData.symbol].order_ids.includes(orderData.order_id)) {
+                                signalMessage = botData.parser.parseSignal({
+                                    leverage: orders[orderData.symbol].long.leverage,
+                                    price_open: orderData.last_exec_price,
+                                    ...orderData
+                                }, "ORDER_EXECUTION");
+                            } else {
+                                signalMessage = botData.parser.parseSignal({
+                                    leverage: orders[orderData.symbol].long.leverage,
+                                    price_open: orderData.last_exec_price,
+                                    ...orderData
+                                }, "");
+                            }
                         } else if (shortPosition.size > prevShortPosition.size) {
-                            signalMessage = botData.parser.parseSignal({
-                                leverage: orders[orderData.symbol].short.leverage,
-                                price_open: orderData.last_exec_price,
-                                ...orderData
-                            }, "");
+                            if (orders[orderData.symbol].order_ids.includes(orderData.order_id)) {
+                                signalMessage = botData.parser.parseSignal({
+                                    leverage: orders[orderData.symbol].short.leverage,
+                                    price_open: orderData.last_exec_price,
+                                    ...orderData
+                                }, "ORDER_EXECUTION");
+                            } else {
+                                signalMessage = botData.parser.parseSignal({
+                                    leverage: orders[orderData.symbol].short.leverage,
+                                    price_open: orderData.last_exec_price,
+                                    ...orderData
+                                }, "");
+                            }
                         }
 
                         if (typeof botData.chatId_group !== 'undefined') {
@@ -488,7 +505,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
 
 bybitBot.websockets.futurePosition(position => {
     try {
-        console.log("Position");
+        // console.log("Position");
         // console.log(position.data);
 
         if (position.data.length > 1) {

@@ -52,6 +52,7 @@ const defaultMesasges = {
 class Parser {
     messagePlaceholders;
     messageOrder;
+    messageOrderExecution;
     messageAction;
     messageClose;
     messageStopLoss;
@@ -67,6 +68,7 @@ class Parser {
 
     constructor(messages, messagePlaceholders = false) {
         this.messageOrder = messages.messageOrder;
+        this.messageOrderExecution = messages.messageOrderExecution;
         this.messageAction = messages.messageAction;
         this.messageClose = messages.messageClose;
         this.messageClosePartially = messages.messageClosePartially;
@@ -101,6 +103,7 @@ class Parser {
         if (orderMessage.order_status == 'New') message = this.messageOrder;
         if (orderMessage.order_status == 'Cancelled') message = this.messageCancel;
         if (orderMessage.order_status == 'Filled') message = this.messageAction;
+        if (type == "ORDER_EXECUTION") message = this.messageOrderExecution;
         if (type == "CLOSE") message = this.messageClose;
         if (type == "PARTIALLY") message = this.messageClosePartially;
         if (type == "NEW_POSITION_TP") message = this.messageTakeProfitChange;
