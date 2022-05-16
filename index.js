@@ -23,25 +23,8 @@ const orders = {};
 const positions = {};
 
 config.telegram.bots.forEach(data => {
-    const messages = {
-        messageOrder: data.messageOrder,
-        messageOrderExecution: data.messageOrderExecution,
-        messageAction: data.messageAction,
-        messageCancel: data.messageCancel,
-        messageClose: data.messageClose,
-        messageClosePartially: data.messageClosePartially,
-        messageStopLossChange: data.messageStopLossChange,
-        messageTakeProfitChange: data.messageTakeProfitChange,
-        messageStopLoss: data.messageStopLoss,
-        messageTakeProfit: data.messageTakeProfit,
-        messageBreakEvenStopLoss: data.messageBreakEvenStopLoss,
-        messageDeleteStopLoss: data.messageDeleteStopLoss,
-        messageDeleteTakeProfit: data.messageDeleteTakeProfit,
-        messageCloseByTakeProfit: data.messageCloseByTakeProfit,
-        messageCloseByStopLoss: data.messageCloseByStopLoss,
-    };
     const placeholders = typeof data.messagePlaceholders !== 'undefined' ? data.messagePlaceholders : false
-    const parser = new Parser(messages, placeholders);
+    const parser = new Parser(data, placeholders);
 
     bots.push({
         bot: new TelegramBot(data.token, { polling: true }),
@@ -137,10 +120,15 @@ bybitBot.websockets.futureOrder(orderMessage => {
 
                         console.log(orders[orderData.symbol]);
                         messageSignal = botData.parser.parseSignal(pasingData, "");
+                        if (typeof messageSignal === 'undefined') {
+                            return;
+                        }
                     }
 
                     if (typeof botData.chatId_group !== 'undefined') {
-                        botData.bot.sendMessage(botData.chatId_group, messageSignal);
+                        botData.bot.sendMessage(botData.chatId_group, messageSignal, {
+                            parse_mode: 'HTML'
+                        });
                     }
 
                     if (typeof botData.chatId_channel !== 'undefined') {
@@ -161,8 +149,14 @@ bybitBot.websockets.futureOrder(orderMessage => {
                         ...orderData
                     }, "");
 
+                    if (typeof messageSignal === 'undefined') {
+                        return;
+                    }
+
                     if (typeof botData.chatId_group !== 'undefined') {
-                        botData.bot.sendMessage(botData.chatId_group, messageSignal);
+                        botData.bot.sendMessage(botData.chatId_group, messageSignal, {
+                            parse_mode: 'HTML'
+                        });
                     }
 
                     if (typeof botData.chatId_channel !== 'undefined') {
@@ -230,6 +224,10 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     }, "CLOSE");
                                 }
 
+                                if (typeof signalMessage === 'undefined') {
+                                    return;
+                                }
+
                                 if (typeof botData.chatId_group !== 'undefined') {
                                     await ImageGenearator.new('Long', {
                                         symbol: orderData.symbol,
@@ -240,6 +238,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     });
                                     // botData.bot.sendMessage(botData.chatId_group, signalMessage);
                                     botData.bot.sendPhoto(botData.chatId_group, './output.png', {
+                                        parse_mode: 'HTML',
                                         caption: signalMessage
                                     });
                                 }
@@ -296,6 +295,10 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     }, "CLOSE");
                                 }
 
+                                if (typeof signalMessage === 'undefined') {
+                                    return;
+                                }
+
                                 if (typeof botData.chatId_group !== 'undefined') {
                                     await ImageGenearator.new('Short', {
                                         symbol: orderData.symbol,
@@ -306,6 +309,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     });
                                     // botData.bot.sendMessage(botData.chatId_group, signalMessage);
                                     botData.bot.sendPhoto(botData.chatId_group, './output.png', {
+                                        parse_mode: 'HTML',
                                         caption: signalMessage
                                     });
                                 }
@@ -419,11 +423,16 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     });
                                 }
 
+                                if (typeof signalMessage === 'undefined') {
+                                    return;
+                                }
+
                                 console.log('Signal message: ', signalMessage);
 
                                 if (typeof botData.chatId_group !== 'undefined') {
                                     // botData.bot.sendMessage(botData.chatId_group, signalMessage);
                                     botData.bot.sendPhoto(botData.chatId_group, './output.png', {
+                                        parse_mode: 'HTML',
                                         caption: signalMessage
                                     });
                                 }
@@ -484,8 +493,14 @@ bybitBot.websockets.futureOrder(orderMessage => {
                             }
                         }
 
+                        if (typeof signalMessage === 'undefined') {
+                            return;
+                        }
+
                         if (typeof botData.chatId_group !== 'undefined') {
-                            botData.bot.sendMessage(botData.chatId_group, signalMessage);
+                            botData.bot.sendMessage(botData.chatId_group, signalMessage, {
+                                parse_mode: 'HTML'
+                            });
                         }
 
                         if (typeof botData.chatId_channel !== 'undefined') {
