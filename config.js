@@ -5,34 +5,59 @@ module.exports = {
         token: "1816816914:AAF1oNW64vxq3tRv_AOaDWZtJRlVok1dssA",
         chat_id_group: "-1001319144479",
         // chat_id_channel: "-1001526673230",
-        messageAction: "⚡️ Сигнал {{action}} {{symbol}}\
-            \nВошел в сделку по цене {{price_open}}\
+        messageOrder: "<b>Выставляем лимитный ордер на {{side}} {{symbol}}</b>\
+            \nЦена {{price_open}}\
+            \nПлечо х5-x10\
             {{take_profit_message}}\
-            {{stop_loss_message}}\
-            \n\
-            \nСделки совершаю на бирже <a href='https://bybit.com/'>ByBit</a>. При регистрации по ссылке бонусы до 4100$\
-            \n\
-            \n📌 Не забудьте включить уведомления и закрепить канал, чтобы ничего не пропустить",
-        messageClosePartially: "🏁 Закрываем {{close_percent}}% позиции по {{symbol}}\
+            {{stop_loss_message}}",
+        messageOrderExecution: "<b>{{action}} {{symbol}}</b>\
+            \nСработал выставленный лимитный ордер\
+            \nМоя цена входа {{price_open}}\
+            \nПлече x{{leverage}}\
+            {{take_profit_message}}\
+            {{stop_loss_message}}",
+        messageAction: "<b>{{action}} {{symbol}}</b>\
+            \nМоя цена входа {{price_open}}\
+            \nПлечо x{{leverage}}\
+            {{take_profit_message}}\
+            {{stop_loss_message}}",
+        messageClosePartially: "<b>🏁 Закрываем {{close_percent}}% позиции по {{symbol}}</b>\
+            \nМоя цена входа {{price_open}}\
+            \nМоя цена закрытия {{price_close}}\
             \nPnL {{roi}}%",
-        messageClose: "🏁 Закрываем всю позицию по {{symbol}} \
+        messageClose: "<b>🏁 Закрываем всю позицию по {{symbol}}</b> \
+            \nМоя цена входа {{price_open}}\
+            \nМоя цена закрытия {{price_close}}\
             \nPnL {{roi}}%",
-        messageStopLoss: "\nСтоп поставил на уровне {{stop_loss}}",
-        messageTakeProfit: "\nПланирую держать до цели {{take_profit}}",
-        messageDeleteStopLoss: "Убираем стоп-лосс по {{symbol}}",
-        messageDeleteTakeProfit: "Убираем тейк-профит по {{symbol}}",
-        messageCloseByTakeProfit: "🏁 Сработал тейк-профит. Закрыл {{close_percent}}% позиции по {{symbol}}\
+        messageCancel: "<b>Отменяем лимитный ордер на {{side}} {{symbol}}</b> \
+            \nОрдер ставили на уровень {{price_open}}",
+        messageStopLossChange: "<b>Изменяем стоп-лосс по {{symbol}}</b> \
+            \nНовый стоп ставим на уровень {{stop_loss}}",
+        messageTakeProfitChange: "<b>Изменяем тейк-профит по {{symbol}}</b> \
+            \nНовый тейк ставим на уровень {{take_profit}}",
+        messageStopLoss: "\nСтоп {{stop_loss}}",
+        messageTakeProfit: "\nТейк {{take_profit}}",
+        messageBreakEvenStopLoss: "<b>Ставим стоп-лосс в БУ по {{symbol}}</b>\
+            \nМоя точка входа {{price_open}}\
+            \nМой стоп: {{stop_loss}}",
+        messageDeleteStopLoss: "<b>Убираем стоп-лосс по {{symbol}}</b>",
+        messageDeleteTakeProfit: "<b>Убираем тейк-профит по {{symbol}}</b>",
+        messageCloseByTakeProfit: "<b>🏁 Сработал тейк-профит. Закрыл {{close_percent}}% от текущей позиции по {{symbol}}</b>\
+            \nМоя цена входа {{price_open}}\
+            \nМоя цена закрытия {{price_close}}\
             \nPnL {{roi}}%",
-        messageCloseByStopLoss: "🏁 Сработал стоп-лосс. Закрыл {{close_percent}}% позиции по {{symbol}}\
+        messageCloseByStopLoss: "<b>🏁 Сработал стоп-лосс. Закрыл {{close_percent}}% от текущей позиции по {{symbol}}</b>\
+            \nМоя цена входа {{price_open}}\
+            \nМоя цена закрытия {{price_close}}\
             \nPnL {{roi}}%",
         messagePlaceholders: {
           action: {
-            buy: "LONG",
-            sell: "SHORT"
+            buy: "🟢 LONG",
+            sell: "🔴 SHORT"
           },
           side: {
-            long: "лонг",
-            short: "шорт"
+            long: "LONG",
+            short: "SHORT"
           },
           order: {
             type: {

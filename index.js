@@ -633,7 +633,9 @@ bybitBot.websockets.futurePosition(position => {
                 }, "NEW_POSITION_TP");
 
                 if (typeof botData.chatId_group !== 'undefined') {
-                    botData.bot.sendMessage(botData.chatId_group, signalMessage);
+                    botData.bot.sendMessage(botData.chatId_group, signalMessage, {
+                        parse_mode: 'HTML'
+                    });
                 }
 
                 if (typeof botData.chatId_channel !== 'undefined') {
@@ -662,7 +664,9 @@ bybitBot.websockets.futurePosition(position => {
                     }, "BREAKEVEN_SL");
 
                     if (typeof botData.chatId_group !== 'undefined') {
-                        botData.bot.sendMessage(botData.chatId_group, signalMessage);
+                        botData.bot.sendMessage(botData.chatId_group, signalMessage, {
+                            parse_mode: 'HTML'
+                        });
                     }
 
                     if (typeof botData.chatId_channel !== 'undefined') {
@@ -685,7 +689,9 @@ bybitBot.websockets.futurePosition(position => {
                     }, "NEW_POSITION_SL");
 
                     if (typeof botData.chatId_group !== 'undefined') {
-                        botData.bot.sendMessage(botData.chatId_group, signalMessage);
+                        botData.bot.sendMessage(botData.chatId_group, signalMessage, {
+                            parse_mode: 'HTML'
+                        });
                     }
 
                     if (typeof botData.chatId_channel !== 'undefined') {
