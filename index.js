@@ -127,7 +127,8 @@ bybitBot.websockets.futureOrder(orderMessage => {
 
                     if (typeof botData.chatId_group !== 'undefined') {
                         botData.bot.sendMessage(botData.chatId_group, messageSignal, {
-                            parse_mode: 'HTML'
+                            parse_mode: 'HTML',
+                            disable_web_page_preview: false
                         });
                     }
 
@@ -155,7 +156,8 @@ bybitBot.websockets.futureOrder(orderMessage => {
 
                     if (typeof botData.chatId_group !== 'undefined') {
                         botData.bot.sendMessage(botData.chatId_group, messageSignal, {
-                            parse_mode: 'HTML'
+                            parse_mode: 'HTML',
+                            disable_web_page_preview: false
                         });
                     }
 
@@ -499,7 +501,8 @@ bybitBot.websockets.futureOrder(orderMessage => {
 
                         if (typeof botData.chatId_group !== 'undefined') {
                             botData.bot.sendMessage(botData.chatId_group, signalMessage, {
-                                parse_mode: 'HTML'
+                                parse_mode: 'HTML',
+                                disable_web_page_preview: false
                             });
                         }
 
@@ -632,13 +635,14 @@ bybitBot.websockets.futurePosition(position => {
                     stop_loss: currentPos.stop_loss
                 }, "NEW_POSITION_TP");
 
-                if (typeof botData.chatId_group !== 'undefined') {
+                if (typeof botData.chatId_group !== 'undefined' && typeof signalMessage !== 'undefined') {
                     botData.bot.sendMessage(botData.chatId_group, signalMessage, {
-                        parse_mode: 'HTML'
+                        parse_mode: 'HTML',
+                        disable_web_page_preview: false
                     });
                 }
 
-                if (typeof botData.chatId_channel !== 'undefined') {
+                if (typeof botData.chatId_channel !== 'undefined' && typeof signalMessage !== 'undefined') {
                     await axios.get(URL, {
                         params: {
                             chat_id: botData.chatId_channel,
@@ -663,13 +667,14 @@ bybitBot.websockets.futurePosition(position => {
                         stop_loss: currentPos.stop_loss
                     }, "BREAKEVEN_SL");
 
-                    if (typeof botData.chatId_group !== 'undefined') {
+                    if (typeof botData.chatId_group !== 'undefined' && typeof signalMessage !== 'undefined') {
                         botData.bot.sendMessage(botData.chatId_group, signalMessage, {
-                            parse_mode: 'HTML'
+                            parse_mode: 'HTML',
+                            disable_web_page_preview: false
                         });
                     }
 
-                    if (typeof botData.chatId_channel !== 'undefined') {
+                    if (typeof botData.chatId_channel !== 'undefined' && typeof signalMessage !== 'undefined') {
                         await axios.get(URL, {
                             params: {
                                 chat_id: botData.chatId_channel,
@@ -688,13 +693,14 @@ bybitBot.websockets.futurePosition(position => {
                         stop_loss: currentPos.stop_loss
                     }, "NEW_POSITION_SL");
 
-                    if (typeof botData.chatId_group !== 'undefined') {
+                    if (typeof botData.chatId_group !== 'undefined' && typeof signalMessage !== 'undefined') {
                         botData.bot.sendMessage(botData.chatId_group, signalMessage, {
-                            parse_mode: 'HTML'
+                            parse_mode: 'HTML',
+                            disable_web_page_preview: false
                         });
                     }
 
-                    if (typeof botData.chatId_channel !== 'undefined') {
+                    if (typeof botData.chatId_channel !== 'undefined' && typeof signalMessage !== 'undefined') {
                         await axios.get(URL, {
                             params: {
                                 chat_id: botData.chatId_channel,
