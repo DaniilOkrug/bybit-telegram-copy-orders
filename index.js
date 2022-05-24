@@ -22,12 +22,14 @@ const bots = [];
 const orders = {};
 const positions = {};
 
+const telegramBot = new TelegramBot(config.telegram.bots[0].token, { polling: true });
+
 config.telegram.bots.forEach(data => {
     const placeholders = typeof data.messagePlaceholders !== 'undefined' ? data.messagePlaceholders : false
     const parser = new Parser(data, placeholders);
 
     bots.push({
-        bot: new TelegramBot(data.token, { polling: true }),
+        bot: telegramBot,
         token: data.token,
         chatId_channel: data.chat_id_channel,
         chatId_group: data.chat_id_group,
@@ -53,16 +55,6 @@ config.telegram.bots.forEach(data => {
         }
     });
 })();
-
-let chatId;
-
-bots.forEach(botData => {
-    botData.bot.onText(/\/start/, (msg) => {
-        chatId = msg.chat.id;
-
-        botData.bot.sendMessage(chatId, "Bot started");
-    });
-});
 
 bybitBot.websockets.futureOrder(orderMessage => {
     console.log("Order");
@@ -124,12 +116,14 @@ bybitBot.websockets.futureOrder(orderMessage => {
                             return;
                         }
                     }
-
-                    if (typeof botData.chatId_group !== 'undefined') {
-                        botData.bot.sendMessage(botData.chatId_group, messageSignal, {
-                            parse_mode: 'HTML',
-                            disable_web_page_preview: false
-                        });
+                    
+                    if (botData.chatId_group.length != 0) {
+                        for (const chatId of botData.chatId_group) {
+                            botData.bot.sendMessage(chatId, messageSignal, {
+                                parse_mode: 'HTML',
+                                disable_web_page_preview: false
+                            });
+                        }
                     }
 
                     if (typeof botData.chatId_channel !== 'undefined') {
@@ -154,11 +148,13 @@ bybitBot.websockets.futureOrder(orderMessage => {
                         return;
                     }
 
-                    if (typeof botData.chatId_group !== 'undefined') {
-                        botData.bot.sendMessage(botData.chatId_group, messageSignal, {
-                            parse_mode: 'HTML',
-                            disable_web_page_preview: false
-                        });
+                    if (botData.chatId_group.length != 0) {
+                        for (const chatId of botData.chatId_group) {
+                            botData.bot.sendMessage(chatId, messageSignal, {
+                                parse_mode: 'HTML',
+                                disable_web_page_preview: false
+                            });
+                        }
                     }
 
                     if (typeof botData.chatId_channel !== 'undefined') {
@@ -230,7 +226,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     return;
                                 }
 
-                                if (typeof botData.chatId_group !== 'undefined') {
+                                if (botData.chatId_group.length != 0) {
                                     await ImageGenearator.new('Long', {
                                         symbol: orderData.symbol,
                                         open: prevLongPosition.entry_price,
@@ -238,11 +234,13 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         leverage: prevLongPosition.leverage,
                                         pnl: roi.toFixed(2)
                                     });
-                                    // botData.bot.sendMessage(botData.chatId_group, signalMessage);
-                                    botData.bot.sendPhoto(botData.chatId_group, './output.png', {
-                                        parse_mode: 'HTML',
-                                        caption: signalMessage
-                                    });
+
+                                    for (const chatId of botData.chatId_group) {
+                                        botData.bot.sendPhoto(chatId, './output.png', {
+                                            parse_mode: 'HTML',
+                                            caption: signalMessage
+                                        });
+                                    }
                                 }
 
                                 if (typeof botData.chatId_channel !== 'undefined') {
@@ -253,9 +251,10 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         }
                                     });
                                 }
-
-                                delete orders[orderData.symbol].long;
                             });
+
+                            delete orders[orderData.symbol].long;
+
                             return;
                         }
 
@@ -301,7 +300,7 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     return;
                                 }
 
-                                if (typeof botData.chatId_group !== 'undefined') {
+                                if (botData.chatId_group.length != 0) {
                                     await ImageGenearator.new('Short', {
                                         symbol: orderData.symbol,
                                         open: prevShortPosition.entry_price,
@@ -309,11 +308,13 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         leverage: prevShortPosition.leverage,
                                         pnl: roi.toFixed(2)
                                     });
-                                    // botData.bot.sendMessage(botData.chatId_group, signalMessage);
-                                    botData.bot.sendPhoto(botData.chatId_group, './output.png', {
-                                        parse_mode: 'HTML',
-                                        caption: signalMessage
-                                    });
+                                    
+                                    for (const chatId of botData.chatId_group) {
+                                        botData.bot.sendPhoto(chatId, './output.png', {
+                                            parse_mode: 'HTML',
+                                            caption: signalMessage
+                                        });
+                                    }
                                 }
 
                                 if (typeof botData.chatId_channel !== 'undefined') {
@@ -324,9 +325,10 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         }
                                     });
                                 }
-
-                                delete orders[orderData.symbol].short;
                             });
+
+                            delete orders[orderData.symbol].short;
+
                             return;
                         }
 
@@ -431,12 +433,13 @@ bybitBot.websockets.futureOrder(orderMessage => {
 
                                 console.log('Signal message: ', signalMessage);
 
-                                if (typeof botData.chatId_group !== 'undefined') {
-                                    // botData.bot.sendMessage(botData.chatId_group, signalMessage);
-                                    botData.bot.sendPhoto(botData.chatId_group, './output.png', {
-                                        parse_mode: 'HTML',
-                                        caption: signalMessage
-                                    });
+                                if (botData.chatId_group.length != 0) {
+                                    for (const chatId of botData.chatId_group) {
+                                        botData.bot.sendPhoto(chatId, './output.png', {
+                                            parse_mode: 'HTML',
+                                            caption: signalMessage
+                                        });
+                                    }
                                 }
 
                                 if (typeof botData.chatId_channel !== 'undefined') {
@@ -447,18 +450,19 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         }
                                     });
                                 }
-
-                                if (longPosition.size < prevLongPosition?.size) {
-                                    orders[orderData.symbol].long.size = orders[orderData.symbol].long.new_size;
-                                }
-
-                                if (shortPosition.size < prevShortPosition?.size) {
-                                    orders[orderData.symbol].short.size = orders[orderData.symbol].short.new_size;
-                                }
                             } catch (err) {
                                 console.log(err);
                             }
                         });
+
+                        if (longPosition.size < prevLongPosition?.size) {
+                            orders[orderData.symbol].long.size = orders[orderData.symbol].long.new_size;
+                        }
+
+                        if (shortPosition.size < prevShortPosition?.size) {
+                            orders[orderData.symbol].short.size = orders[orderData.symbol].short.new_size;
+                        }
+
                         return;
                     }
 
@@ -499,11 +503,13 @@ bybitBot.websockets.futureOrder(orderMessage => {
                             return;
                         }
 
-                        if (typeof botData.chatId_group !== 'undefined') {
-                            botData.bot.sendMessage(botData.chatId_group, signalMessage, {
-                                parse_mode: 'HTML',
-                                disable_web_page_preview: false
-                            });
+                        if (botData.chatId_group.length != 0) {
+                            for (const chatId of botData.chatId_group) {
+                                botData.bot.sendMessage(chatId, signalMessage, {
+                                    parse_mode: 'HTML',
+                                    disable_web_page_preview: false
+                                });
+                            }
                         }
 
                         if (typeof botData.chatId_channel !== 'undefined') {

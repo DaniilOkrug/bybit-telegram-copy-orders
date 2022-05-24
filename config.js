@@ -2,8 +2,8 @@ module.exports = {
   telegram: {
     bots: [
       {
-        token: "1816816914:AAF1oNW64vxq3tRv_AOaDWZtJRlVok1dssA",
-        chat_id_group: "-1001526673230",
+        token: "",
+        chat_id_group: [],
         // chat_id_channel: "-1001526673230",
         messageOrderExecution: "<b>⚡️ Сигнал {{action}} {{symbol}}</b>\
             \nВошел в сделку по цене {{price_open}}\
