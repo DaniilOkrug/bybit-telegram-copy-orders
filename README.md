@@ -2,5 +2,5 @@
  The project provides the ability to copy information about transactions from the Bybit exchange to Telegram channels.  The number of channels is not limited.
 
 # .env file
-KEY=Binance API key
-SECRET=Binance API secret
+1. KEY => Binance API key
+2. SECRET => Binance API secret
