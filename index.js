@@ -38,7 +38,8 @@ config.telegram.bots.forEach(data => {
 });
 
 (async () => {
-    (await bybitBot.positions()).forEach(position => {
+    const currentAccountPositions = await bybitBot.positions();
+    for (const position of currentAccountPositions) {
         if (typeof positions[position.data.symbol] === 'undefined') {
             positions[position.data.symbol] = {
                 previous: {},
@@ -53,7 +54,9 @@ config.telegram.bots.forEach(data => {
             positions[position.data.symbol].previous.shortPosition = position.data;
             positions[position.data.symbol].current.shortPosition = position.data;
         }
-    });
+    }
+
+    console.log('Prepare finished');
 })();
 
 bybitBot.websockets.futureOrder(orderMessage => {
@@ -63,76 +66,82 @@ bybitBot.websockets.futureOrder(orderMessage => {
     orderMessage.data.forEach(orderData => {
         setTimeout(async () => {
             if (orderData.order_status == "New") {
-                bots.forEach(async botData => {
-                    const ordersSymbols = Object.keys(orders);
-                    let isOrderExists = false;
-                    let messageSignal = "";
-                    if (ordersSymbols.includes(orderData.symbol)) {
-                        const orderId = orders[orderData.symbol].order_ids.find(id => id == orderData.order_id);
-                        if (typeof orderId !== 'undefined') isOrderExists = true;
+                const ordersSymbols = Object.keys(orders);
+                let isOrderExists = false;
+                let messageSignal = "";
+                if (ordersSymbols.includes(orderData.symbol)) {
+                    const orderId = orders[orderData.symbol].order_ids.find(id => id == orderData.order_id);
+                    if (typeof orderId !== 'undefined') isOrderExists = true;
+                }
+
+                let pasingData = {
+                    price_open: orderData.price,
+                    ...orderData
+                };
+
+                if (isOrderExists) {
+                    if (orderData.take_profit != orders[orderData.symbol].take_profit) {
+                        orders[orderData.symbol].take_profit = orderData.take_profit;
+                    } else if (orderData.stop_loss != orders[orderData.symbol].stop_loss) {
+                        orders[orderData.symbol].stop_loss = orderData.stop_loss;
                     }
 
-                    let pasingData = {
-                        price_open: orderData.price,
-                        ...orderData
-                    };
-
-                    if (isOrderExists) {
-                        if (orderData.take_profit != orders[orderData.symbol].take_profit) {
-                            messageSignal = botData.parser.parseSignal(pasingData, "NEW_POSITION_TP");
-                            orders[orderData.symbol].take_profit = orderData.take_profit;
-                        } else if (orderData.stop_loss != orders[orderData.symbol].stop_loss) {
-                            messageSignal = botData.parser.parseSignal(pasingData, "NEW_POSITION_SL");
-                            orders[orderData.symbol].stop_loss = orderData.stop_loss;
-                        } else {
-                            messageSignal = botData.parser.parseSignal(pasingData, "CHAHGE_ORDER_POSITION");
-                        }
-
+                } else {
+                    if (typeof orders[orderData.symbol] === 'undefined') {
+                        orders[orderData.symbol] = {
+                            price_open: orderData.price,
+                            take_profit: orderData.take_profit,
+                            stop_loss: orderData.stop_loss,
+                            order_ids: [orderData.order_id]
+                        };
                     } else {
-                        if (typeof orders[orderData.symbol] === 'undefined') {
+                        const { longPosition, shortPosition } = positions[orderData.symbol].current;
+                        if (orderData.create_type != "CreateByClosing" && longPosition.size == 0 && shortPosition.size == 0) {
                             orders[orderData.symbol] = {
                                 price_open: orderData.price,
                                 take_profit: orderData.take_profit,
                                 stop_loss: orderData.stop_loss,
                                 order_ids: [orderData.order_id]
                             };
+                        }
+                    }
+
+                    pasingData.leverage = orders[orderData.symbol].leverage;
+
+                }
+
+                bots.forEach(async botData => {
+                    if (isOrderExists) {
+                        if (orderData.take_profit != orders[orderData.symbol].take_profit) {
+                            messageSignal = botData.parser.parseSignal(pasingData, "NEW_POSITION_TP");
+                        } else if (orderData.stop_loss != orders[orderData.symbol].stop_loss) {
+                            messageSignal = botData.parser.parseSignal(pasingData, "NEW_POSITION_SL");
                         } else {
-                            const { longPosition, shortPosition } = positions[orderData.symbol].current;
-                            if (orderData.create_type != "CreateByClosing" && longPosition.size == 0 && shortPosition.size == 0) {
-                                orders[orderData.symbol] = {
-                                    price_open: orderData.price,
-                                    take_profit: orderData.take_profit,
-                                    stop_loss: orderData.stop_loss,
-                                    order_ids: [orderData.order_id]
-                                };
-                            }
+                            messageSignal = botData.parser.parseSignal(pasingData, "CHAHGE_ORDER_POSITION");
                         }
 
-                        pasingData.leverage = orders[orderData.symbol].leverage;
-
-                        console.log(orders[orderData.symbol]);
+                    } else {
                         messageSignal = botData.parser.parseSignal(pasingData, "");
-                        if (typeof messageSignal === 'undefined') {
-                            return;
-                        }
                     }
                     
-                    if (botData.chatId_group.length != 0) {
-                        for (const chatId of botData.chatId_group) {
-                            botData.bot.sendMessage(chatId, messageSignal, {
-                                parse_mode: 'HTML',
-                                disable_web_page_preview: false
+                    if (typeof messageSignal !== 'undefined') {
+                        if (botData.chatId_group.length != 0) {
+                            for (const chatId of botData.chatId_group) {
+                                botData.bot.sendMessage(chatId, messageSignal, {
+                                    parse_mode: 'HTML',
+                                    disable_web_page_preview: false
+                                });
+                            }
+                        }
+
+                        if (typeof botData.chatId_channel !== 'undefined') {
+                            await axios.get(URL, {
+                                params: {
+                                    chat_id: botData.chatId_channel,
+                                    text: messageSignal
+                                }
                             });
                         }
-                    }
-
-                    if (typeof botData.chatId_channel !== 'undefined') {
-                        await axios.get(URL, {
-                            params: {
-                                chat_id: botData.chatId_channel,
-                                text: messageSignal
-                            }
-                        });
                     }
                 });
             }
@@ -144,38 +153,33 @@ bybitBot.websockets.futureOrder(orderMessage => {
                         ...orderData
                     }, "");
 
-                    if (typeof messageSignal === 'undefined') {
-                        return;
-                    }
+                    if (typeof messageSignal !== 'undefined') {
+                        if (botData.chatId_group.length != 0) {
+                            for (const chatId of botData.chatId_group) {
+                                botData.bot.sendMessage(chatId, messageSignal, {
+                                    parse_mode: 'HTML',
+                                    disable_web_page_preview: false
+                                });
+                            }
+                        }
 
-                    if (botData.chatId_group.length != 0) {
-                        for (const chatId of botData.chatId_group) {
-                            botData.bot.sendMessage(chatId, messageSignal, {
-                                parse_mode: 'HTML',
-                                disable_web_page_preview: false
+                        if (typeof botData.chatId_channel !== 'undefined') {
+                            await axios.get(URL, {
+                                params: {
+                                    chat_id: botData.chatId_channel,
+                                    text: messageSignal
+                                }
                             });
                         }
-                    }
-
-                    if (typeof botData.chatId_channel !== 'undefined') {
-                        await axios.get(URL, {
-                            params: {
-                                chat_id: botData.chatId_channel,
-                                text: messageSignal
-                            }
-                        });
                     }
                 });
             }
 
             if (orderData.order_status == "Filled") {
-                console.log('Orders', orders[orderData.symbol]);
                 if (typeof positions[orderData.symbol] !== 'undefined') {
                     const { longPosition, shortPosition } = positions[orderData.symbol].current;
                     const prevLongPosition = positions[orderData.symbol].previous.longPosition;
                     const prevShortPosition = positions[orderData.symbol].previous.shortPosition;
-
-                    console.log("here", prevLongPosition, longPosition);
 
                     //Закрытие части или всей позиции
                     const fullCloseCondition = (shortPosition.size == 0 && prevShortPosition?.size > 0) || (longPosition.size == 0 && prevLongPosition?.size > 0)
@@ -187,14 +191,9 @@ bybitBot.websockets.futureOrder(orderMessage => {
                         //Full close long
                         if (longPosition.size == 0 && prevLongPosition?.size > 0) {
                             const order = orders[orderData.symbol].long;
-                            // let roi = ((Math.abs(order.end_pnl - order.init_pnl)) / (order.size * prevLongPosition.entry_price)) * 100;
-                            roi = ((orderData.last_exec_price - prevLongPosition.entry_price) / (orderData.last_exec_price / prevLongPosition.leverage)) * 100;
+                            let roi = ((orderData.last_exec_price - prevLongPosition.entry_price) / (orderData.last_exec_price / prevLongPosition.leverage)) * 100;
 
-                            // if (order.end_pnl < order.init_pnl) {
-                            //     roi *= -1;
-                            // }
-
-                            bots.forEach(async botData => {
+                            for(const botData of bots) {
                                 let signalMessage;
 
                                 if (orderData.create_type == 'CreateByTakeProfit') {
@@ -222,37 +221,34 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     }, "CLOSE");
                                 }
 
-                                if (typeof signalMessage === 'undefined') {
-                                    return;
-                                }
+                                if (typeof signalMessage !== 'undefined') {
+                                    if (botData.chatId_group.length != 0) {
+                                        await ImageGenearator.new('Long', {
+                                            symbol: orderData.symbol,
+                                            open: prevLongPosition.entry_price,
+                                            close: orderData.last_exec_price,
+                                            leverage: prevLongPosition.leverage,
+                                            pnl: roi.toFixed(2)
+                                        });
 
-                                if (botData.chatId_group.length != 0) {
-                                    await ImageGenearator.new('Long', {
-                                        symbol: orderData.symbol,
-                                        open: prevLongPosition.entry_price,
-                                        close: orderData.last_exec_price,
-                                        leverage: prevLongPosition.leverage,
-                                        pnl: roi.toFixed(2)
-                                    });
+                                        for (const chatId of botData.chatId_group) {
+                                            botData.bot.sendPhoto(chatId, './output.png', {
+                                                parse_mode: 'HTML',
+                                                caption: signalMessage
+                                            });
+                                        }
+                                    }
 
-                                    for (const chatId of botData.chatId_group) {
-                                        botData.bot.sendPhoto(chatId, './output.png', {
-                                            parse_mode: 'HTML',
-                                            caption: signalMessage
+                                    if (typeof botData.chatId_channel !== 'undefined') {
+                                        await axios.get(URL, {
+                                            params: {
+                                                chat_id: botData.chatId_channel,
+                                                text: signalMessage
+                                            }
                                         });
                                     }
                                 }
-
-                                if (typeof botData.chatId_channel !== 'undefined') {
-                                    await axios.get(URL, {
-                                        params: {
-                                            chat_id: botData.chatId_channel,
-                                            text: signalMessage
-                                        }
-                                    });
-                                }
-                            });
-
+                            }
                             delete orders[orderData.symbol].long;
 
                             return;
@@ -261,14 +257,9 @@ bybitBot.websockets.futureOrder(orderMessage => {
                         //Full close short
                         if (shortPosition.size == 0 && prevShortPosition?.size > 0) {
                             const order = orders[orderData.symbol].short;
-                            // let roi = ((Math.abs(order.end_pnl - order.init_pnl)) / (order.size * prevShortPosition.entry_price)) * 100;
-                            roi = ((prevShortPosition.entry_price - orderData.last_exec_price) / (orderData.last_exec_price / prevShortPosition.leverage)) * 100;
+                            let roi = ((prevShortPosition.entry_price - orderData.last_exec_price) / (orderData.last_exec_price / prevShortPosition.leverage)) * 100;
 
-                            // if (order.end_pnl < order.init_pnl) {
-                            //     roi *= -1;
-                            // }
-
-                            bots.forEach(async botData => {
+                            for(const botData of bots) {
                                 let signalMessage;
 
                                 if (orderData.create_type == 'CreateByTakeProfit') {
@@ -296,60 +287,55 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     }, "CLOSE");
                                 }
 
-                                if (typeof signalMessage === 'undefined') {
-                                    return;
-                                }
+                                if (typeof signalMessage !== 'undefined') {
+                                    if (botData.chatId_group.length != 0) {
+                                        await ImageGenearator.new('Short', {
+                                            symbol: orderData.symbol,
+                                            open: prevShortPosition.entry_price,
+                                            close: orderData.last_exec_price,
+                                            leverage: prevShortPosition.leverage,
+                                            pnl: roi.toFixed(2)
+                                        });
 
-                                if (botData.chatId_group.length != 0) {
-                                    await ImageGenearator.new('Short', {
-                                        symbol: orderData.symbol,
-                                        open: prevShortPosition.entry_price,
-                                        close: orderData.last_exec_price,
-                                        leverage: prevShortPosition.leverage,
-                                        pnl: roi.toFixed(2)
-                                    });
-                                    
-                                    for (const chatId of botData.chatId_group) {
-                                        botData.bot.sendPhoto(chatId, './output.png', {
-                                            parse_mode: 'HTML',
-                                            caption: signalMessage
+                                        for (const chatId of botData.chatId_group) {
+                                            botData.bot.sendPhoto(chatId, './output.png', {
+                                                parse_mode: 'HTML',
+                                                caption: signalMessage
+                                            });
+                                        }
+                                    }
+
+                                    if (typeof botData.chatId_channel !== 'undefined') {
+                                        await axios.get(URL, {
+                                            params: {
+                                                chat_id: botData.chatId_channel,
+                                                text: signalMessage
+                                            }
                                         });
                                     }
                                 }
-
-                                if (typeof botData.chatId_channel !== 'undefined') {
-                                    await axios.get(URL, {
-                                        params: {
-                                            chat_id: botData.chatId_channel,
-                                            text: signalMessage
-                                        }
-                                    });
-                                }
-                            });
-
+                            }
                             delete orders[orderData.symbol].short;
 
                             return;
                         }
 
                         //Partially close
-                        bots.forEach(async botData => {
+                        let order;
+                        let roi;
+                        if (shortPosition.size < prevShortPosition?.size) {
+                            order = orders[orderData.symbol].short;
+                            roi = ((shortPosition.entry_price - orderData.last_exec_price) / (orderData.last_exec_price / shortPosition.leverage)) * 100;
+                        } else {
+                            order = orders[orderData.symbol].long;
+                            roi = ((orderData.last_exec_price - longPosition.entry_price) / (orderData.last_exec_price / longPosition.leverage)) * 100;
+                        }
+
+                        for (const botData of bots) {
                             try {
-                                let order;
                                 let signalMessage;
-                                let roi;
 
                                 if (shortPosition.size < prevShortPosition?.size) {
-                                    order = orders[orderData.symbol].short;
-
-                                    //My previuous roi
-                                    // roi = ((Math.abs(order.end_pnl - order.init_pnl)) / (order.size * shortPosition.entry_price)) * 100;
-                                    //New roi
-                                    roi = ((shortPosition.entry_price - orderData.last_exec_price) / (orderData.last_exec_price / shortPosition.leverage)) * 100;
-                                    // if (order.end_pnl < order.init_pnl) {
-                                    //     roi *= -1;
-                                    // }
-
                                     if (orderData.create_type == 'CreateByTakeProfit') {
                                         signalMessage = botData.parser.parseSignal({
                                             roi: roi.toFixed(2),
@@ -384,14 +370,6 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                         pnl: roi.toFixed(2)
                                     });
                                 } else {
-                                    order = orders[orderData.symbol].long;
-
-                                    // roi = ((Math.abs(order.end_pnl - order.init_pnl)) / (order.size * longPosition.entry_price)) * 100;
-                                    roi = ((orderData.last_exec_price - longPosition.entry_price) / (orderData.last_exec_price / longPosition.leverage)) * 100;
-                                    // if (order.end_pnl < order.init_pnl) {
-                                    //     roi *= -1;
-                                    // }
-
                                     if (orderData.create_type == 'CreateByTakeProfit') {
                                         signalMessage = botData.parser.parseSignal({
                                             roi: roi.toFixed(2),
@@ -427,33 +405,29 @@ bybitBot.websockets.futureOrder(orderMessage => {
                                     });
                                 }
 
-                                if (typeof signalMessage === 'undefined') {
-                                    return;
-                                }
+                                if (typeof signalMessage !== 'undefined') {
+                                    if (botData.chatId_group.length != 0) {
+                                        for (const chatId of botData.chatId_group) {
+                                            botData.bot.sendPhoto(chatId, './output.png', {
+                                                parse_mode: 'HTML',
+                                                caption: signalMessage
+                                            });
+                                        }
+                                    }
 
-                                console.log('Signal message: ', signalMessage);
-
-                                if (botData.chatId_group.length != 0) {
-                                    for (const chatId of botData.chatId_group) {
-                                        botData.bot.sendPhoto(chatId, './output.png', {
-                                            parse_mode: 'HTML',
-                                            caption: signalMessage
+                                    if (typeof botData.chatId_channel !== 'undefined') {
+                                        await axios.get(URL, {
+                                            params: {
+                                                chat_id: botData.chatId_channel,
+                                                text: signalMessage
+                                            }
                                         });
                                     }
-                                }
-
-                                if (typeof botData.chatId_channel !== 'undefined') {
-                                    await axios.get(URL, {
-                                        params: {
-                                            chat_id: botData.chatId_channel,
-                                            text: signalMessage
-                                        }
-                                    });
                                 }
                             } catch (err) {
                                 console.log(err);
                             }
-                        });
+                        }
 
                         if (longPosition.size < prevLongPosition?.size) {
                             orders[orderData.symbol].long.size = orders[orderData.symbol].long.new_size;
@@ -464,63 +438,61 @@ bybitBot.websockets.futureOrder(orderMessage => {
                         }
 
                         return;
-                    }
-
-                    //Продажа или покупка актива
-                    bots.forEach(async botData => {
-                        let signalMessage;
-                        if (longPosition.size > prevLongPosition.size) {
-                            if (orders[orderData.symbol].order_ids.includes(orderData.order_id)) {
-                                signalMessage = botData.parser.parseSignal({
-                                    leverage: orders[orderData.symbol].long.leverage,
-                                    price_open: orderData.last_exec_price,
-                                    ...orderData
-                                }, "ORDER_EXECUTION");
-                            } else {
-                                signalMessage = botData.parser.parseSignal({
-                                    leverage: orders[orderData.symbol].long.leverage,
-                                    price_open: orderData.last_exec_price,
-                                    ...orderData
-                                }, "");
-                            }
-                        } else if (shortPosition.size > prevShortPosition.size) {
-                            if (orders[orderData.symbol].order_ids.includes(orderData.order_id)) {
-                                signalMessage = botData.parser.parseSignal({
-                                    leverage: orders[orderData.symbol].short.leverage,
-                                    price_open: orderData.last_exec_price,
-                                    ...orderData
-                                }, "ORDER_EXECUTION");
-                            } else {
-                                signalMessage = botData.parser.parseSignal({
-                                    leverage: orders[orderData.symbol].short.leverage,
-                                    price_open: orderData.last_exec_price,
-                                    ...orderData
-                                }, "");
-                            }
-                        }
-
-                        if (typeof signalMessage === 'undefined') {
-                            return;
-                        }
-
-                        if (botData.chatId_group.length != 0) {
-                            for (const chatId of botData.chatId_group) {
-                                botData.bot.sendMessage(chatId, signalMessage, {
-                                    parse_mode: 'HTML',
-                                    disable_web_page_preview: false
-                                });
-                            }
-                        }
-
-                        if (typeof botData.chatId_channel !== 'undefined') {
-                            await axios.get(URL, {
-                                params: {
-                                    chat_id: botData.chatId_channel,
-                                    text: signalMessage
+                    } else {
+                        //Продажа или покупка актива
+                        bots.forEach(async botData => {
+                            let signalMessage;
+                            if (longPosition.size > prevLongPosition.size) {
+                                if (orders[orderData.symbol].order_ids.includes(orderData.order_id)) {
+                                    signalMessage = botData.parser.parseSignal({
+                                        leverage: orders[orderData.symbol].long.leverage,
+                                        price_open: orderData.last_exec_price,
+                                        ...orderData
+                                    }, "ORDER_EXECUTION");
+                                } else {
+                                    signalMessage = botData.parser.parseSignal({
+                                        leverage: orders[orderData.symbol].long.leverage,
+                                        price_open: orderData.last_exec_price,
+                                        ...orderData
+                                    }, "");
                                 }
-                            });
-                        }
-                    });
+                            } else if (shortPosition.size > prevShortPosition.size) {
+                                if (orders[orderData.symbol].order_ids.includes(orderData.order_id)) {
+                                    signalMessage = botData.parser.parseSignal({
+                                        leverage: orders[orderData.symbol].short.leverage,
+                                        price_open: orderData.last_exec_price,
+                                        ...orderData
+                                    }, "ORDER_EXECUTION");
+                                } else {
+                                    signalMessage = botData.parser.parseSignal({
+                                        leverage: orders[orderData.symbol].short.leverage,
+                                        price_open: orderData.last_exec_price,
+                                        ...orderData
+                                    }, "");
+                                }
+                            }
+
+                            if (typeof signalMessage !== 'undefined') {
+                                if (botData.chatId_group.length != 0) {
+                                    for (const chatId of botData.chatId_group) {
+                                        botData.bot.sendMessage(chatId, signalMessage, {
+                                            parse_mode: 'HTML',
+                                            disable_web_page_preview: false
+                                        });
+                                    }
+                                }
+
+                                if (typeof botData.chatId_channel !== 'undefined') {
+                                    await axios.get(URL, {
+                                        params: {
+                                            chat_id: botData.chatId_channel,
+                                            text: signalMessage
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
                 }
             }
         }, 2000);
@@ -529,13 +501,13 @@ bybitBot.websockets.futureOrder(orderMessage => {
 
 bybitBot.websockets.futurePosition(position => {
     try {
-        // console.log("Position");
-        // console.log(position.data);
+        console.log("Position update");
+        console.log(position.data);
 
         if (position.data.length > 1) {
             let longPosition;
             let shortPosition;
-            for (const positionReport of position.data) {
+            for (const positionReport of position.data.filter(data => data.symbol === position.data[0].symbol)) {
                 if (positionReport.side == 'Buy') {
                     longPosition = positionReport;
                 } else {
@@ -723,10 +695,7 @@ bybitBot.websockets.futurePosition(position => {
         const prev = positions[currentPos.symbol].previous;
         const cur = positions[currentPos.symbol].current;
 
-        // console.log(prev);
-        // console.log(cur);
-
-        if (prev.longPosition.size == 0 && cur.longPosition.size > 0) {
+        if (cur.longPosition.size > 0 && prev.longPosition.size == 0) {
             if (typeof orders[currentPos.symbol] === 'undefined') {
                 orders[currentPos.symbol] = {
                     long: {},
@@ -809,6 +778,8 @@ bybitBot.websockets.futurePosition(position => {
             }
         }
 
+        console.log('positions cur', positions[currentPos.symbol]);
+        console.log('Orders', orders);
 
     } catch (error) {
         console.log(error);
